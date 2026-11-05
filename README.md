@@ -55,7 +55,8 @@ Cerințe: Node.js 22+, PostgreSQL 16.
 
 ```bash
 npm install
-cp apps/web/.env.example apps/web/.env   # completează AUTH_SECRET cu un șir lung, aleator
+cp apps/web/.env.example apps/web/.env   # completează AUTH_SECRET cu un șir lung, aleator (și parola PostgreSQL în DATABASE_URL)
+createdb -U postgres evaluari             # sau creează baza „evaluari” din pgAdmin
 npm run db:migrate
 npm run db:seed                           # date demo (doar pentru dezvoltare)
 npm run dev                               # http://localhost:3000
