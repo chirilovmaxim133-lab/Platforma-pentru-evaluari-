@@ -8,6 +8,7 @@ import { AUTO_TEXT, CANARY_WORDS } from "@/lib/ai/trap-text";
 import { applyPreset, DEFAULT_THRESHOLDS, SECURITY_PRESET_VALUES } from "@/lib/tests/presets";
 import type { SecurityPreset, TestSettings } from "@/lib/tests/types";
 import type { Locale } from "@/lib/db/schema";
+import { GradeScaleBar } from "@/components/GradeScale";
 import { NumberInput } from "@/components/NumberInput";
 import { Switch } from "@/components/Switch";
 import { Badge, Card, Input, Textarea, cn } from "@/components/ui";
@@ -45,7 +46,6 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   );
 }
 
-const GRADE_COLORS = ["#c8283c", "#d6473b", "#e0663a", "#e98a38", "#f2b32a", "#c9b52f", "#8fb23d", "#55a64b", "#2e9555", "#1f8a5b"];
 
 export function GradingPanel({ settings, onChange }: Props) {
   const { t } = useI18n();
@@ -58,7 +58,6 @@ export function GradingPanel({ settings, onChange }: Props) {
     for (let j = i - 1; j >= 0; j--) th[j] = Math.min(th[j], th[j + 1]);
     onChange({ ...settings, grading: { ...g, thresholds: th } });
   };
-  const bounds = [0, ...g.thresholds, 100];
 
   return (
     <div className="space-y-4">
@@ -84,15 +83,13 @@ export function GradingPanel({ settings, onChange }: Props) {
               </button>
             </div>
             <p className="mt-1 text-sm text-ink-3">{t.settings.thresholdsHint}</p>
-            <div className="mt-4 flex h-4 overflow-hidden rounded-full" aria-hidden>
-              {GRADE_COLORS.map((c, i) => (
-                <div key={c} style={{ width: `${bounds[i + 1] - bounds[i]}%`, background: c }} className="transition-all duration-300" />
-              ))}
+            <div className="mt-4">
+              <GradeScaleBar thresholds={g.thresholds} ariaLabel={t.settings.thresholds} />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-9">
               {g.thresholds.map((v, i) => (
                 <label key={i} className="rounded-2xl border border-line bg-paper p-2 text-center">
-                  <span className="block text-xs font-bold" style={{ color: GRADE_COLORS[i + 1] }}>
+                  <span className="block text-xs font-bold text-ink">
                     {fmt(t.settings.gradeLabel, { n: i + 2 })}
                   </span>
                   <span className="mt-1 block text-[11px] text-ink-3">{t.settings.fromPercent}</span>
@@ -294,7 +291,7 @@ export function AiPanel({ settings, onChange, language, llmAvailable }: Props & 
                 </button>
               </div>
               <p className="mt-3 leading-relaxed">
-                {t.landing.aiDemoQuestion}{" "}
+                {t.settings.aiTrapSample}{" "}
                 {sample ? (
                   <span className={cn("transition-all", reveal ? "rounded bg-red-soft px-1 text-red" : "text-card")}>{sample}</span>
                 ) : null}

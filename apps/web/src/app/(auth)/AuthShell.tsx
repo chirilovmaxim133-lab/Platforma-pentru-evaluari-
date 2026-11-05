@@ -1,17 +1,18 @@
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { Logo } from "@/components/Logo";
-import { Ornament } from "@/components/Ornament";
+import { EmbroideryBand, Ornament } from "@/components/Ornament";
 
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <main className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative hidden overflow-hidden bg-ink lg:block">
-        <div className="absolute inset-0 grid grid-cols-4 gap-10 p-10 opacity-90">
-          {Array.from({ length: 16 }).map((_, i) => (
-            <Ornament key={i} motif={i % 3 === 0 ? "star" : "small"} className="w-full opacity-80" />
+      <section className="relative hidden flex-col overflow-hidden bg-night lg:flex">
+        <EmbroideryBand tone="dark" height={36} id="auth-top" />
+        <div className="grid flex-1 grid-cols-3 place-items-center gap-10 p-12">
+          {(["star", "tree", "rhombus", "wheat", "star", "tree"] as const).map((m, i) => (
+            <Ornament key={i} motif={m} tone="dark" className={i % 2 ? "w-24 opacity-60" : "w-32 opacity-90"} />
           ))}
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-ink to-transparent" />
+        <EmbroideryBand tone="dark" height={36} id="auth-bottom" />
       </section>
       <section className="flex flex-col px-4 py-6 sm:px-10">
         <div className="flex items-center justify-between">

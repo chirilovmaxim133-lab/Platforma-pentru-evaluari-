@@ -17,13 +17,14 @@ import {
   QrCode,
   ToggleLeft,
   Type,
+  Users,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { fmt } from "@/lib/i18n/fmt";
 import { newQuestion } from "@/lib/tests/factory";
 import { QUESTION_TYPES, type EditorPayload, type QuestionType } from "@/lib/tests/types";
 import type { PublishIssue } from "@/lib/tests/service";
-import { Badge, Button, Input, cn } from "@/components/ui";
+import { Badge, Button, Input, Select, cn } from "@/components/ui";
 import { publishTestAction, saveTestAction } from "../../actions";
 import { QuestionCard } from "./QuestionCard";
 import { AiPanel, GradingPanel, SecurityPanel } from "./SettingsPanels";
@@ -45,12 +46,14 @@ export function TestEditor({
   status,
   locked: initiallyLocked,
   llmAvailable,
+  classes,
 }: {
   testId: string;
   initial: EditorPayload;
   status: "draft" | "published" | "closed";
   locked: boolean;
   llmAvailable: boolean;
+  classes: { id: string; name: string; subject: string }[];
 }) {
   const { t } = useI18n();
   const router = useRouter();
@@ -203,6 +206,25 @@ export function TestEditor({
             ))}
           </div>
         </div>
+        <label className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+          <span className="flex items-center gap-2 text-sm font-semibold text-ink-2">
+            <Users className="size-4" /> {t.editor.classLabel}
+          </span>
+          <Select
+            value={data.classId ?? ""}
+            onChange={(e) => setData({ ...data, classId: e.target.value || null })}
+            className="h-11 sm:max-w-xs"
+          >
+            <option value="">{t.editor.classNone}</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+                {c.subject ? ` · ${c.subject}` : ""}
+              </option>
+            ))}
+          </Select>
+          {data.classId ? <span className="text-xs text-ink-3">{t.editor.classHint}</span> : null}
+        </label>
         <textarea
           value={data.description}
           onChange={(e) => setData({ ...data, description: e.target.value })}

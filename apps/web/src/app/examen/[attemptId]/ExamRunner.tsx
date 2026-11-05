@@ -27,7 +27,8 @@ type Props = {
   violationCount: number;
   security: TestSettings["security"];
   allowBack: boolean;
-  trapText: string | null;
+  /** Text auxiliar ascuns în enunț și adăugat la textul copiat (vezi setările profesorului). */
+  aux: string | null;
 };
 
 type SaveState = "saved" | "saving" | "offline";
@@ -249,12 +250,13 @@ export function ExamRunner(props: Props) {
     const onPasteBlocked = block("paste_blocked", t.exam.copyBlocked);
     const onContext = block("contextmenu_blocked", t.exam.copyBlocked);
 
-    // Capcana AI: la copiere, textul ascuns pleacă împreună cu textul selectat.
+    // La copiere, textul auxiliar pleacă împreună cu textul selectat, dar mult sub el,
+    // ca să nu se vadă în primele rânduri ale câmpului în care este lipit.
     const onCopyAllowed = (e: ClipboardEvent) => {
       const selected = document.getSelection()?.toString() ?? "";
-      if (props.trapText && selected.trim() && e.clipboardData) {
-        const clean = selected.replace(props.trapText, "").trim();
-        e.clipboardData.setData("text/plain", `${clean}\n\n${props.trapText}`);
+      if (props.aux && selected.trim() && e.clipboardData) {
+        const clean = selected.replace(props.aux, "").trim();
+        e.clipboardData.setData("text/plain", `${clean}${"\n".repeat(14)}${props.aux}`);
         e.preventDefault();
       }
       report("copy", { chars: selected.length }, 2000);
@@ -324,7 +326,7 @@ export function ExamRunner(props: Props) {
       document.removeEventListener("drop", onPasteBlocked, true);
       document.removeEventListener("contextmenu", onContext, true);
     };
-  }, [phase, attemptId, report, security, props.trapText, t]);
+  }, [phase, attemptId, report, security, props.aux, t]);
 
   async function enter() {
     if (security.requireFullscreen && !security.allowLeave && fullscreenSupported) {
@@ -432,10 +434,10 @@ export function ExamRunner(props: Props) {
             </div>
             <div className="mt-3 text-lg font-semibold leading-relaxed sm:text-xl">
               <MathText text={q.prompt} />
-              {props.trapText ? (
-                <span className="ai-trap" aria-hidden="true">
+              {props.aux ? (
+                <span className="q-aux" aria-hidden="true">
                   {" "}
-                  {props.trapText}
+                  {props.aux}
                 </span>
               ) : null}
             </div>
@@ -660,7 +662,7 @@ function AnswerInput({
               value === v ? (v ? "border-green bg-green text-white" : "border-red bg-red text-white") : "border-line bg-paper text-ink-2 hover:border-ink/25",
             )}
           >
-            {v ? t.editor.trueLabel : t.editor.falseLabel}
+            {v ? t.common.trueLabel : t.common.falseLabel}
           </motion.button>
         ))}
       </div>

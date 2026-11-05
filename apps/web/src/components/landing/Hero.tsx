@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { ArrowRight, BadgeCheck, CameraOff, FlaskConical, LogOut, QrCode, Timer } from "lucide-react";
+import { ArrowRight, BadgeCheck, CameraOff, LogOut, QrCode, Timer, Users } from "lucide-react";
 import { useI18n } from "@/lib/i18n/client";
 import { btn } from "@/components/ui";
 import { AnimatedOrnament } from "./AnimatedOrnament";
 
 const FLOATS = [
-  { key: "floatScreenshot", icon: CameraOff, tone: "bg-ink text-paper", pos: "left-[-1.5rem] top-[4%] sm:left-[-5.5rem]" },
-  { key: "floatLeave", icon: LogOut, tone: "bg-red text-white", pos: "right-[-1rem] top-[38%] sm:right-[-5rem]" },
-  { key: "floatGrade", icon: BadgeCheck, tone: "bg-green text-white", pos: "left-[-1rem] bottom-[3%] sm:left-[-6rem]" },
-  { key: "floatTrap", icon: FlaskConical, tone: "bg-sun text-[#14182b]", pos: "right-[-0.5rem] bottom-[8%] sm:right-[-4rem]" },
+  { key: "floatScreenshot", icon: CameraOff, tone: "bg-night text-night-ink", pos: "left-[-1rem] top-[2%] sm:left-[-6rem]" },
+  { key: "floatLeave", icon: LogOut, tone: "bg-red text-white", pos: "right-[-1rem] top-[36%] sm:right-[-5.5rem]" },
+  { key: "floatGrade", icon: BadgeCheck, tone: "bg-green text-white", pos: "left-[-1rem] bottom-[6%] sm:left-[-6.5rem]" },
+  { key: "floatClass", icon: Users, tone: "bg-sun text-[#1b1414]", pos: "right-[-0.5rem] bottom-[-2%] sm:right-[-4.5rem]" },
 ] as const;
 
 function Phone() {
@@ -24,8 +24,8 @@ function Phone() {
   }, []);
   const options = ["6π cm²", "9π cm²", "3π cm²", "12π cm²"];
   return (
-    <div className="relative mx-auto w-[270px] rounded-[2.6rem] border-[10px] border-ink bg-card shadow-lift sm:w-[300px]">
-      <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-ink" />
+    <div className="relative mx-auto w-[260px] rounded-[2.6rem] border-[10px] border-night bg-card shadow-lift sm:w-[290px]">
+      <div className="absolute left-1/2 top-2 z-10 h-5 w-24 -translate-x-1/2 rounded-full bg-night" />
       <div className="overflow-hidden rounded-[2rem] bg-paper pb-6 pt-9">
         <div className="flex items-center justify-between px-5 text-[11px] font-bold">
           <span className="truncate">Geometrie · cl. 8</span>
@@ -45,10 +45,10 @@ function Phone() {
                 key={o}
                 animate={selected === i ? { scale: [1, 1.04, 1] } : {}}
                 className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-[13px] font-semibold transition-colors ${
-                  selected === i ? "border-blue bg-blue-soft" : "border-line"
+                  selected === i ? "border-red bg-red-soft" : "border-line"
                 }`}
               >
-                <span className={`grid size-5 place-items-center rounded-full text-[10px] font-bold ${selected === i ? "bg-blue text-white" : "bg-paper ring-1 ring-line"}`}>
+                <span className={`grid size-5 place-items-center rounded-full text-[10px] font-bold ${selected === i ? "bg-red text-white" : "bg-paper ring-1 ring-line"}`}>
                   {String.fromCharCode(65 + i)}
                 </span>
                 {o}
@@ -58,7 +58,7 @@ function Phone() {
         </div>
         <div className="mx-4 mt-3 grid grid-cols-2 gap-2">
           <div className="h-9 rounded-xl border border-line" />
-          <div className="h-9 rounded-xl bg-ink" />
+          <div className="h-9 rounded-xl bg-night" />
         </div>
       </div>
     </div>
@@ -70,8 +70,8 @@ export function Hero({ loggedInHref }: { loggedInHref: string | null }) {
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
   const { scrollY } = useScroll();
-  const phoneY = useTransform(scrollY, [0, 600], [0, -60]);
-  const ornamentRotate = useTransform(scrollY, [0, 800], [0, 45]);
+  const phoneY = useTransform(scrollY, [0, 600], [0, -50]);
+  const starRotate = useTransform(scrollY, [0, 900], [0, 30]);
 
   useEffect(() => {
     if (reduce) return;
@@ -83,43 +83,37 @@ export function Hero({ loggedInHref }: { loggedInHref: string | null }) {
 
   return (
     <section className="relative overflow-hidden">
-      <motion.div style={{ rotate: ornamentRotate }} className="pointer-events-none absolute -right-40 -top-40 hidden w-[42rem] opacity-[0.07] lg:block">
-        <AnimatedOrnament motif="star" className="w-full" />
-      </motion.div>
-
-      <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pb-20 pt-10 lg:grid-cols-[1.15fr_1fr] lg:pt-16">
+      <div className="mx-auto grid max-w-6xl items-center gap-16 px-4 pb-20 pt-12 lg:grid-cols-[1.1fr_1fr] lg:pt-16">
         <div>
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3 py-1.5 text-xs font-bold text-ink-2 shadow-soft"
           >
-            <span className="size-2 rounded-full bg-green" /> {t.landing.badge}
+            <span className="size-2 rotate-45 bg-red" /> {t.landing.badge}
           </motion.span>
-          <h1 className="mt-6 font-display text-[2.6rem] font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.2rem]">
+          <h1 className="mt-6 font-display text-[2.6rem] font-bold leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.1rem]">
             <motion.span className="block" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               {t.landing.titleA}
             </motion.span>
             <span className="block text-red">
-              {words.map((w, i) => (
-                <motion.span
-                  key={i}
-                  className="inline-block"
-                  initial={reduce ? false : { opacity: 0, y: 30, rotate: 4 }}
-                  animate={{ opacity: 1, y: 0, rotate: 0 }}
-                  transition={{ delay: 0.25 + i * 0.09, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {w}
-                </motion.span>
-              )).flatMap((el, i) => (i ? [" ", el] : [el]))}
+              {words
+                .map((w, i) => (
+                  <motion.span
+                    key={i}
+                    className="inline-block"
+                    initial={reduce ? false : { opacity: 0, y: 30, rotate: 4 }}
+                    animate={{ opacity: 1, y: 0, rotate: 0 }}
+                    transition={{ delay: 0.25 + i * 0.09, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {w}
+                  </motion.span>
+                ))
+                .flatMap((el, i) => (i ? [" ", el] : [el]))}
             </span>
           </h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2"
-          >
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.8, duration: 0.8 }} className="stitch-line stitch-run mt-6 w-40 origin-left" />
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
             {t.landing.subtitle}
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.85 }} className="mt-8 flex flex-wrap gap-3">
@@ -134,11 +128,19 @@ export function Hero({ loggedInHref }: { loggedInHref: string | null }) {
         </div>
 
         <motion.div style={{ y: reduce ? 0 : phoneY }} className="relative mx-auto">
-          <motion.div
-            className="absolute inset-0 -z-10 m-auto size-[340px] rounded-full bg-sun/30 blur-3xl"
-            animate={reduce ? {} : { scale: [1, 1.08, 1] }}
-            transition={{ duration: 6, repeat: Infinity }}
-          />
+          {/* Medalionul: un cerc de pânză cu tighel roșu, ca un gherghef de brodat. */}
+          <div className="absolute left-1/2 top-1/2 -z-10 size-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper-2 sm:size-[460px]">
+            <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
+              <circle cx="50" cy="50" r="48" fill="none" stroke="var(--red)" strokeWidth="0.6" strokeDasharray="2.2 1.6" />
+              <circle cx="50" cy="50" r="45.5" fill="none" stroke="var(--ink)" strokeOpacity="0.25" strokeWidth="0.3" />
+            </svg>
+          </div>
+          <motion.div style={{ rotate: reduce ? 0 : starRotate }} className="absolute -right-24 -top-24 -z-10 w-64 opacity-90 sm:-right-36 sm:-top-28 sm:w-80">
+            <AnimatedOrnament motif="star" step={0.04} delay={0.4} />
+          </motion.div>
+          <motion.div className="absolute -bottom-16 -left-20 -z-10 w-36 opacity-80 sm:-left-28 sm:w-44">
+            <AnimatedOrnament motif="tree" step={0.05} delay={0.9} />
+          </motion.div>
           <motion.div initial={{ opacity: 0, y: 40, rotate: -6 }} animate={{ opacity: 1, y: 0, rotate: -3 }} transition={{ delay: 0.3, type: "spring", stiffness: 60, damping: 14 }}>
             <Phone />
           </motion.div>

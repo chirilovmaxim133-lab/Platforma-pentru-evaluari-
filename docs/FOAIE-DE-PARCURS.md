@@ -7,6 +7,11 @@
 - Securitate personalizabilă: presetări + reguli (ieșire, ecran complet, capturi, copiere, filigran, predare automată).
 - Capcana AI (automată sau personalizată), telemetria scrisului, asemănarea între colegi, analiza opțională cu Claude.
 - Cod QR + mod proiector, rezultate live, corectarea eseurilor, export CSV.
+- **Clase**: profesorul creează clasa, elevii se înregistrează direct în ea (cod/QR), testele se atribuie clasei
+  (doar elevii clasei le pot susține); media clasei, media fiecărui elev, evoluția mediei pe teste.
+- **Contul elevului**: media generală, cea mai bună notă, tendința, graficul notelor în timp, mediile pe discipline,
+  toate notele și, pentru fiecare clasă, media lui alături de media clasei.
+- Identitate vizuală cu motive tradiționale (steaua în opt colțuri, pomul vieții, rombul cu coarne, spicul, altița).
 
 ## Faza 2 — Aplicația mobilă (Android + iOS)
 
@@ -19,7 +24,7 @@
 
 - **MPass**: integrarea SAML este scrisă; se pornește după acordul cu AGE și primirea datelor de integrare.
 - **Verificarea profesorilor** de către administratorul școlii (rolul „administrator de școală”).
-- Importul listei de elevi pe clase; grupuri/clase la care se trimite testul.
+- Importul listei de elevi într-o clasă (din Excel), pe lângă înregistrarea cu codul clasei.
 - **Banca de întrebări** (personală și a școlii), reutilizarea și partajarea testelor între profesori.
 - Importul întrebărilor dintr-un document Word/PDF.
 - Întrebări parametrizate (alte numere pentru fiecare elev).

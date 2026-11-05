@@ -5,7 +5,9 @@ import { redirect } from "next/navigation";
 import { eq, ilike } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { schools, users, type Role } from "@/lib/db/schema";
+import { classes, schools, users, type Role } from "@/lib/db/schema";
+import { joinClass } from "@/lib/classes/service";
+import { normalizeAccessCode } from "@/lib/tests/random";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { createSession, destroySession, homeFor } from "@/lib/auth/session";
 import { verifyPayload } from "@/lib/auth/crypto";
@@ -91,6 +93,16 @@ export async function registerAction(_: FormState, form: FormData): Promise<Form
     })
     .returning();
   await createSession(user.id);
+
+  // Înregistrare din invitația unei clase: elevul intră direct în clasă.
+  const classCode = normalizeAccessCode(String(form.get("classCode") ?? ""));
+  if (classCode && user.role === "student") {
+    const [cls] = await db.select({ id: classes.id }).from(classes).where(eq(classes.joinCode, classCode)).limit(1);
+    if (cls) {
+      await joinClass(cls.id, user.id);
+      redirect(`/c/${classCode}?joined=1`);
+    }
+  }
   redirect(safeNext(form.get("next"), homeFor(user.role)));
 }
 

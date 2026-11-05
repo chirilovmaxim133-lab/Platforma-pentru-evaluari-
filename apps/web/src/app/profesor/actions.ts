@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { attempts, questions, tests } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { runLlmAnalysis } from "@/lib/ai/analyze";
+import { getOwnedClass } from "@/lib/classes/service";
 import { defaultSettings } from "@/lib/tests/presets";
 import { generateAccessCode } from "@/lib/tests/random";
 import {
@@ -32,11 +33,13 @@ async function hasAttempts(testId: string): Promise<boolean> {
   return !!row;
 }
 
-export async function createTestAction() {
+/** Test nou (gol). Din pagina unei clase, testul se leagă direct de acea clasă. */
+export async function createTestAction(classId?: string | FormData) {
   const user = await requireUser("teacher");
+  const cls = typeof classId === "string" ? await getOwnedClass(classId, user) : null;
   const [test] = await db
     .insert(tests)
-    .values({ ownerId: user.id, title: "", language: user.locale, settings: defaultSettings() })
+    .values({ ownerId: user.id, title: "", language: user.locale, settings: defaultSettings(), classId: cls?.id ?? null, subject: cls?.subject ?? "" })
     .returning({ id: tests.id });
   redirect(`/profesor/teste/${test.id}`);
 }
@@ -49,6 +52,8 @@ export async function saveTestAction(testId: string, payload: EditorPayload): Pr
   if (!parsed.success) return { ok: false };
   const data = parsed.data;
   const locked = await hasAttempts(testId);
+  const user = await requireUser("teacher");
+  const cls = data.classId ? await getOwnedClass(data.classId, user) : null;
   const gradingChanged = JSON.stringify(test.settings.grading) !== JSON.stringify(data.settings.grading);
 
   await db.transaction(async (tx) => {
@@ -58,6 +63,7 @@ export async function saveTestAction(testId: string, payload: EditorPayload): Pr
         title: data.title,
         description: data.description,
         subject: data.subject,
+        classId: cls?.id ?? null,
         // După ce elevii au început, întrebările și limba rămân neschimbate, ca rezultatele să fie comparabile.
         language: locked ? test.language : data.language,
         settings: data.settings,
@@ -143,6 +149,7 @@ export async function duplicateTestAction(testId: string) {
       subject: test.subject,
       language: test.language,
       settings: test.settings,
+      classId: test.classId,
     })
     .returning({ id: tests.id });
   if (qs.length) {

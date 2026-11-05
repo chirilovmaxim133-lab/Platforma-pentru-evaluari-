@@ -27,7 +27,7 @@ export function JoinForm() {
   return (
     <form action={action}>
       <input type="hidden" name="code" value={chars.join("")} />
-      <div className="flex justify-center gap-2 sm:gap-3">
+      <div className="flex justify-center gap-1.5 sm:gap-2">
         {chars.map((c, i) => (
           <input
             key={i}
@@ -56,8 +56,8 @@ export function JoinForm() {
               setFrom(i, e.clipboardData.getData("text"));
             }}
             className={cn(
-              "h-16 w-12 rounded-2xl border-2 border-line bg-card text-center font-display text-2xl font-bold uppercase focus:border-red focus:outline-none sm:h-20 sm:w-16 sm:text-3xl",
-              i === 2 && "mr-2 sm:mr-4",
+              "h-14 w-11 rounded-2xl border-2 border-line bg-card text-center font-display text-2xl font-bold uppercase focus:border-red focus:outline-none sm:h-16 sm:w-14",
+              i === 2 && "mr-2 sm:mr-3",
             )}
           />
         ))}

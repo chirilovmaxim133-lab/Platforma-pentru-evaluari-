@@ -4,6 +4,8 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const SHOTS = process.env.SHOTS_DIR ?? require("node:path").join(__dirname, "..", "e2e-shots");
 require("node:fs").mkdirSync(SHOTS, { recursive: true });
 const log = (...a) => console.log("•", ...a);
+// Cuvinte care nu au voie să apară în paginile văzute de elevi (metodele de verificare rămân secrete).
+const LEAK = /capcan|chatbot|invizibil|ловушк|чат-бот|instrucțiunea ascunsă|скрытая инструкция/i;
 
 function watch(page, tag) {
   page.on("pageerror", (e) => console.log(`[${tag}] PAGEERROR`, e.message));
@@ -59,17 +61,20 @@ async function simulateLeave(page) {
   await lp.locator("#securitate").scrollIntoViewIfNeeded();
   await lp.waitForTimeout(1200);
   await lp.locator("#securitate").screenshot({ path: `${SHOTS}/02-security-demo.png` });
-  await lp.locator("#ai").scrollIntoViewIfNeeded();
-  await lp.waitForTimeout(800);
-  await lp.getByRole("button", { name: /Copiază ca un elev/ }).click();
-  await lp.waitForTimeout(4500);
-  await lp.locator("#ai").screenshot({ path: `${SHOTS}/03-ai-trap-demo.png` });
+  await lp.locator("#traditie").scrollIntoViewIfNeeded();
+  await lp.waitForTimeout(2500);
+  await lp.locator("#traditie").screenshot({ path: `${SHOTS}/03-traditions.png` });
+  await lp.locator("#clase").scrollIntoViewIfNeeded();
+  await lp.waitForTimeout(1500);
+  await lp.locator("#clase").screenshot({ path: `${SHOTS}/03b-classes.png` });
+  await lp.screenshot({ path: `${SHOTS}/01b-landing-full.png`, fullPage: true });
   await lp.getByRole("button", { name: "ru", exact: true }).first().click();
   await lp.waitForTimeout(1500);
   await lp.evaluate(() => window.scrollTo(0, 0));
   await lp.waitForTimeout(1500);
   await lp.screenshot({ path: `${SHOTS}/04-landing-ru.png` });
   log("landing RU title:", (await lp.locator("h1").innerText()).replace(/\s+/g, " "));
+  log("landing hides verification methods:", !LEAK.test(await lp.content()));
   await visitor.close();
 
   // ---------------------------------------------------------------- profesor: creează test
@@ -80,6 +85,34 @@ async function simulateLeave(page) {
   log("teacher url:", tp.url());
   await tp.screenshot({ path: `${SHOTS}/05-teacher-dashboard.png` });
 
+  await tp.goto(BASE + "/profesor/clase");
+  await tp.fill("#cls-name", "7C");
+  await tp.fill("#cls-subject", "Geografie");
+  await tp.getByRole("button", { name: /Creează clasa/ }).click();
+  await tp.waitForURL(/\/profesor\/clase\/[0-9a-f-]{36}$/);
+  const classCode = (await tp.locator("p.tracking-\\[0\\.18em\\]").first().innerText()).replace(/\s/g, "");
+  log("class code:", classCode);
+  const nctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "ro-RO" });
+  const np = await nctx.newPage();
+  watch(np, "new-student");
+  await np.goto(BASE + "/c/" + classCode);
+  await np.screenshot({ path: `${SHOTS}/22-class-invite-mobile.png` });
+  await np.getByRole("link", { name: /Creează cont și intră în clasă/ }).click();
+  await np.waitForURL(/inregistrare/);
+  await np.fill("#firstName", "Sorin");
+  await np.fill("#lastName", "Vrabie");
+  await np.fill("#school", "Liceul Teoretic Demo nr. 1");
+  await np.fill("#email", `sorin.${Date.now()}@demo.md`);
+  await np.fill("#password", "Demo12345");
+  await np.screenshot({ path: `${SHOTS}/23-register-into-class.png`, fullPage: true });
+  await np.click("button[type=submit]");
+  await np.waitForURL(/\/c\/.*joined=1/);
+  log("joined class after register:", await np.getByText(/Ai intrat în clasa 7C/).isVisible());
+  await nctx.close();
+  await tp.reload();
+  log("class page shows new student:", (await tp.locator("main").innerText()).includes("Vrabie Sorin"));
+
+  await tp.goto(BASE + "/profesor");
   await tp.getByRole("button", { name: /Test nou/ }).first().click();
   await tp.waitForURL(/\/profesor\/teste\/[0-9a-f-]{36}$/);
   const testUrl = tp.url();
@@ -178,7 +211,8 @@ async function simulateLeave(page) {
   await s2.waitForURL(/\/examen\//);
   await s2.getByRole("button", { name: /Войти в режим экзамена/ }).click();
   await s2.waitForTimeout(700);
-  const trap = await s2.locator(".ai-trap").first().innerText();
+  const trap = await s2.locator(".q-aux").first().innerText();
+  log("exam page hides verification texts:", !LEAK.test((await s2.content()).replace(trap, "")));
   const canary = (trap.match(/«([^»]+)»/) || [])[1];
   log("hidden trap text present:", !!trap, "canary:", canary);
   for (let i = 0; i < 3; i++) {
@@ -215,8 +249,29 @@ async function simulateLeave(page) {
   await s2.waitForURL(/rezultat/, { timeout: 15000 });
   await s2.waitForTimeout(1800);
   await s2.screenshot({ path: `${SHOTS}/18-mobile-result-ru.png` });
+  const actx = await browser.newContext({ viewport: { width: 1360, height: 900 }, locale: "ro-RO" });
+  const ap = await actx.newPage();
+  watch(ap, "ana");
+  await ap.goto(BASE + "/autentificare");
+  await ap.getByRole("button", { name: "ro", exact: true }).click();
+  await ap.waitForTimeout(500);
+  await login(ap, "elev2@demo.md");
+  await ap.waitForTimeout(1200);
+  await ap.screenshot({ path: `${SHOTS}/24-student-dashboard.png`, fullPage: true });
+  const dash = await ap.locator("main").innerText();
+  log("student dashboard:", ["Media generală", "Notele tale în timp", "Media clasei", "Toate notele"].map((x) => `${x}=${dash.includes(x)}`).join(" "));
+  await ap.getByRole("link", { name: /Matematică/ }).first().click();
+  await ap.waitForURL(/\/elev\/clase\//);
+  await ap.screenshot({ path: `${SHOTS}/25-student-class.png` });
+  await actx.close();
 
   // ---------------------------------------------------------------- profesor: rezultate
+  await tp.goto(BASE + "/profesor/clase");
+  await tp.getByRole("link", { name: /8A/ }).first().click();
+  await tp.waitForURL(/\/profesor\/clase\/[0-9a-f-]{36}$/);
+  await tp.waitForTimeout(800);
+  await tp.screenshot({ path: `${SHOTS}/26-teacher-class.png`, fullPage: true });
+  log("class average shown:", /Media clasei\s*\n?\s*\d+,\d{2}/.test(await tp.locator("main").innerText()));
   await tp.goto(testUrl + "/rezultate");
   await tp.waitForTimeout(600);
   await tp.screenshot({ path: `${SHOTS}/19-results.png` });

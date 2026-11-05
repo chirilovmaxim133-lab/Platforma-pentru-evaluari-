@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { Ban, Camera, Clock, Copy, LogOut, Maximize, ShieldAlert, Stamp, UserRound } from "lucide-react";
 import { db } from "@/lib/db";
-import { attempts, questions, tests, users } from "@/lib/db/schema";
+import { attempts, classes, questions, tests, users } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { DICTS, fmt } from "@/lib/i18n";
 import { normalizeAccessCode } from "@/lib/tests/random";
@@ -60,14 +60,27 @@ export default async function JoinPage({ params, searchParams }: PageProps<"/t/[
     ...(s.security.requireFullscreen && !s.security.allowLeave ? [{ icon: Maximize, text: t.join.rules.fullscreen }] : []),
     { icon: Ban, text: t.join.rules.oneAttempt },
   ];
+  let className = "";
+  if (sp.e === "notInClass" && test.classId) {
+    const [cls] = await db.select({ name: classes.name }).from(classes).where(eq(classes.id, test.classId)).limit(1);
+    className = cls?.name ?? "";
+  }
   const errorText =
-    sp.e === "closed" ? t.join.closed : sp.e === "notPublished" ? t.join.notPublished : sp.e === "appOnly" ? t.join.appOnly : null;
+    sp.e === "closed"
+      ? t.join.closed
+      : sp.e === "notPublished"
+        ? t.join.notPublished
+        : sp.e === "appOnly"
+          ? t.join.appOnly
+          : sp.e === "notInClass"
+            ? fmt(t.join.notInClass, { name: className })
+            : null;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col px-4 py-6">
       <Logo />
       <Card className="relative mt-8 overflow-hidden p-6 sm:p-10">
-        <Ornament motif="band" className="absolute -right-8 -top-2 hidden w-48 opacity-25 sm:block" />
+        <Ornament motif="star" className="absolute -right-10 -top-10 hidden w-44 opacity-20 sm:block" />
         <Badge tone="red">{code.slice(0, 3)} {code.slice(3)}</Badge>
         <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{test.title}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-ink-2">

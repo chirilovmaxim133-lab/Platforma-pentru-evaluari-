@@ -8,7 +8,8 @@ import postgres from "postgres";
 import { hash } from "@node-rs/argon2";
 import * as schema from "./schema";
 import { applyPreset, defaultSettings } from "../tests/presets";
-import type { EditorQuestion } from "../tests/types";
+import { computeTotals, scoreAll } from "../tests/grading";
+import type { AnswerValue, EditorQuestion } from "../tests/types";
 
 if (process.env.NODE_ENV === "production") {
   console.error("Seed is for local development only.");
@@ -92,11 +93,13 @@ const biology: EditorQuestion[] = [
 ];
 
 async function main() {
+  await db.delete(schema.classMembers);
   await db.delete(schema.attemptEvents);
   await db.delete(schema.attempts);
   await db.delete(schema.questions);
   await db.delete(schema.tests);
   await db.delete(schema.sessions);
+  await db.delete(schema.classes);
   await db.delete(schema.users);
   await db.delete(schema.schools);
 
@@ -122,9 +125,19 @@ async function main() {
     ["elev1@demo.md", "Andrei", "Ciobanu"],
     ["elev2@demo.md", "Ana", "Rusu"],
     ["elev3@demo.md", "Mihai", "Popa"],
+    ["elev4@demo.md", "Ion", "Ceban"],
+    ["elev5@demo.md", "Maria", "Lungu"],
+    ["elev6@demo.md", "Daniel", "Rotaru"],
+    ["elev7@demo.md", "Cristina", "Moraru"],
+    ["elev8@demo.md", "Victor", "Țurcanu"],
+    ["elev9@demo.md", "Elena", "Botnaru"],
+    ["elev10@demo.md", "Alexandru", "Cojocaru"],
+    ["elev11@demo.md", "Irina", "Sârbu"],
+    ["elev12@demo.md", "Nicolae", "Guțu"],
   ];
+  const studentIds: string[] = [];
   for (const [email, firstName, lastName] of students) {
-    await db.insert(schema.users).values({
+    const [st] = await db.insert(schema.users).values({
       role: "student",
       email,
       passwordHash,
@@ -134,16 +147,33 @@ async function main() {
       schoolName: schools[0].name,
       className: "8A",
       locale: "ro",
-    });
+    }).returning({ id: schema.users.id });
+    studentIds.push(st.id);
   }
+
+  // Clasa 8A la matematică, cu toți elevii demo, și o clasă goală la istorie.
+  const [math8a] = await db
+    .insert(schema.classes)
+    .values({ ownerId: teacher.id, schoolId: schools[0].id, name: "8A", subject: "Matematică", gradeLevel: 8, joinCode: "MAT8AB" })
+    .returning();
+  await db.insert(schema.classes).values({ ownerId: teacher.id, schoolId: schools[0].id, name: "9A", subject: "Istorie", gradeLevel: 9, joinCode: "IST9AC" });
+  await db.insert(schema.classMembers).values(studentIds.map((studentId) => ({ classId: math8a.id, studentId })));
 
   const standard = { ...defaultSettings(), aiTrap: { enabled: true, mode: "auto" as const, hiddenText: "", keywords: [] } };
   const trapSettings = applyPreset({ ...defaultSettings(), timeLimitMinutes: 30 }, "ai_trap");
 
-  const make = async (title: string, subject: string, language: "ro" | "ru", code: string, settings: schema.Test["settings"], qs: EditorQuestion[]) => {
+  const make = async (
+    title: string,
+    subject: string,
+    language: "ro" | "ru",
+    code: string,
+    settings: schema.Test["settings"],
+    qs: EditorQuestion[],
+    extra: Partial<typeof schema.tests.$inferInsert> = {},
+  ) => {
     const [test] = await db
       .insert(schema.tests)
-      .values({ ownerId: teacher.id, title, subject, language, status: "published", accessCode: code, settings, publishedAt: new Date() })
+      .values({ ownerId: teacher.id, title, subject, language, status: "published", accessCode: code, settings, publishedAt: new Date(), ...extra })
       .returning();
     await db.insert(schema.questions).values(
       qs.map((q, position) => ({ id: q.id, testId: test.id, position, type: q.data.type, prompt: q.prompt, imageUrl: q.imageUrl, points: q.points, data: q.data })),
@@ -151,11 +181,94 @@ async function main() {
     return test;
   };
 
-  await make("Geometrie: cercul și aria", "Matematică", "ro", "GEM8AB", standard, geometry);
+  await make("Geometrie: cercul și aria", "Matematică", "ro", "GEM8AB", standard, geometry, { classId: math8a.id });
   await make("Фотосинтез и цвет листьев", "Биология", "ru", "BTR7RU", trapSettings, biology);
 
+  await seedHistory(teacher.id, math8a.id, studentIds);
+
   const [check] = await db.select().from(schema.users).where(eq(schema.users.email, "profesor@demo.md"));
-  console.log(`Seeded. Teacher: ${check.email} / ${PASSWORD}. Students: elev1..3@demo.md / ${PASSWORD}. Test codes: GEM8AB, BTR7RU`);
+  console.log(`Seeded. Teacher: ${check.email} / ${PASSWORD}. Students: elev1..12@demo.md / ${PASSWORD}. Test codes: GEM8AB, BTR7RU. Class code: MAT8AB`);
+}
+
+/**
+ * Istoric demonstrativ: 6 teste închise ale clasei 8A (septembrie–octombrie), cu lucrări notate,
+ * ca graficele de progres și media clasei să aibă ce arăta. Punctajele se calculează din răspunsuri reale.
+ */
+async function seedHistory(ownerId: string, classId: string, studentIds: string[]) {
+  const topics: [string, string][] = [
+    ["Fracții", "2026-09-08"],
+    ["Ecuații de gradul I", "2026-09-19"],
+    ["Rapoarte și proporții", "2026-09-29"],
+    ["Procente", "2026-10-09"],
+    ["Triunghiuri", "2026-10-20"],
+    ["Funcții", "2026-10-30"],
+  ];
+  // „Nivelul” fiecărui elev și o ușoară creștere în timp, cu variații de la un test la altul.
+  const base = [6.4, 8.6, 7.2, 5.8, 9.1, 7.6, 8.1, 6.9, 9.4, 7.0, 8.3, 6.1];
+  const noise = [0, 1, -1, 1, 0, -1, 1, 0, -1, 0, 1, -1];
+  const settings = { ...defaultSettings(), results: { showScore: true, showCorrectAnswers: true } };
+
+  for (const [ti, [topic, day]] of topics.entries()) {
+    const at = new Date(`${day}T09:00:00+03:00`);
+    const qs: EditorQuestion[] = Array.from({ length: 10 }, (_, k) => {
+      const a = 3 + ti * 4 + k;
+      const b = 2 + k;
+      return {
+        id: crypto.randomUUID(),
+        prompt: `${topic}: cât face $${a} \\times ${b}$?`,
+        imageUrl: null,
+        points: 1,
+        data: {
+          type: "single",
+          options: [
+            { id: "a", text: String(a * b) },
+            { id: "b", text: String(a * b + b) },
+            { id: "c", text: String(a * b - 1) },
+            { id: "d", text: String(a + b) },
+          ],
+          correctIds: ["a"],
+        },
+      };
+    });
+    const [test] = await db
+      .insert(schema.tests)
+      .values({ ownerId, classId, title: topic, subject: "Matematică", language: "ro", status: "closed", settings, createdAt: at, updatedAt: at, publishedAt: at, closedAt: at })
+      .returning();
+    await db.insert(schema.questions).values(
+      qs.map((q, position) => ({ id: q.id, testId: test.id, position, type: q.data.type, prompt: q.prompt, imageUrl: q.imageUrl, points: q.points, data: q.data })),
+    );
+    const gradable = qs.map((q) => ({ id: q.id, points: q.points, data: q.data }));
+    for (const [si, studentId] of studentIds.entries()) {
+      // Nicolae (ultimul elev) a lipsit la ultimul test.
+      if (si === studentIds.length - 1 && ti === topics.length - 1) continue;
+      const level = base[si % base.length] + ti * 0.15 + noise[(si + ti) % noise.length] * 0.9;
+      const correct = Math.max(3, Math.min(10, Math.round(level)));
+      const answers: Record<string, AnswerValue> = Object.fromEntries(qs.map((q, k) => [q.id, k < correct ? "a" : "b"]));
+      const auto = scoreAll(gradable, answers);
+      const totals = computeTotals(gradable, auto, {}, settings.grading);
+      const started = new Date(at.getTime() + si * 60_000);
+      const submitted = new Date(started.getTime() + 25 * 60_000);
+      await db.insert(schema.attempts).values({
+        testId: test.id,
+        studentId,
+        status: "submitted",
+        submitReason: "student",
+        startedAt: started,
+        submittedAt: submitted,
+        lastSeenAt: submitted,
+        questionOrder: qs.map((q) => q.id),
+        optionOrder: Object.fromEntries(qs.map((q) => [q.id, ["a", "b", "c", "d"]])),
+        answers,
+        autoScores: Object.fromEntries(Object.entries(auto).map(([k, v]) => [k, v ?? 0])),
+        score: totals.score,
+        maxScore: totals.maxScore,
+        percent: totals.percent,
+        grade: totals.grade,
+        gradingComplete: totals.complete,
+        aiReport: { level: "none", score: 0, signals: [], analyzedAt: started.toISOString() },
+      });
+    }
+  }
 }
 
 await main();

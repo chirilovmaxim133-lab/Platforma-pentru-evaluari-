@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import {
   attemptEvents,
   attempts,
+  classMembers,
   questions as questionsTable,
   tests,
   type Attempt,
@@ -55,7 +56,9 @@ export function validateForPublish(test: Pick<Test, "title">, qs: Pick<Question,
 
 // ---------------------------------------------------------------- începerea testului
 
-export type StartResult = { ok: true; attemptId: string } | { ok: false; reason: "closed" | "notPublished" | "appOnly" | "notStudent" };
+export type StartResult =
+  | { ok: true; attemptId: string }
+  | { ok: false; reason: "closed" | "notPublished" | "appOnly" | "notStudent" | "notInClass" };
 
 export async function startAttempt(test: Test, student: User, client: "web" | "app"): Promise<StartResult> {
   const [existing] = await db
@@ -69,6 +72,14 @@ export async function startAttempt(test: Test, student: User, client: "web" | "a
   if (test.status === "closed") return { ok: false, reason: "closed" };
   if (test.status !== "published") return { ok: false, reason: "notPublished" };
   if (client === "web" && !test.settings.security.allowWebBrowser) return { ok: false, reason: "appOnly" };
+  if (test.classId) {
+    const [member] = await db
+      .select({ id: classMembers.classId })
+      .from(classMembers)
+      .where(and(eq(classMembers.classId, test.classId), eq(classMembers.studentId, student.id)))
+      .limit(1);
+    if (!member) return { ok: false, reason: "notInClass" };
+  }
 
   const qs = await loadQuestions(test.id);
   const order = test.settings.shuffleQuestions ? shuffled(qs) : qs;

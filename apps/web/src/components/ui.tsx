@@ -24,7 +24,7 @@ const SIZES: Record<Size, string> = {
 
 export function btn(variant: Variant = "primary", size: Size = "md", extra?: string): string {
   return cn(
-    "inline-flex select-none items-center justify-center font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
+    "inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
     VARIANTS[variant],
     SIZES[size],
     extra,

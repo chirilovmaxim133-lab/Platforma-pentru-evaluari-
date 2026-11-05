@@ -6,7 +6,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   return (
     <>
       <AppHeader />
-      <main className="mx-auto max-w-3xl px-4 pb-24 pt-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 pb-24 pt-8">{children}</main>
     </>
   );
 }

@@ -100,12 +100,22 @@ function RolePicker({ role, setRole }: { role: "student" | "teacher"; setRole: (
   );
 }
 
-function SchoolFields({ role, schools }: { role: "student" | "teacher"; schools: string[] }) {
+function SchoolFields({
+  role,
+  schools,
+  defaultSchool,
+  defaultClass,
+}: {
+  role: "student" | "teacher";
+  schools: string[];
+  defaultSchool?: string;
+  defaultClass?: string;
+}) {
   const { t } = useI18n();
   return (
     <div className={cn("grid gap-4", role === "student" && "sm:grid-cols-[1fr_7rem]")}>
       <Field label={t.auth.school} htmlFor="school">
-        <Input id="school" name="school" list="schools-list" placeholder={t.auth.schoolPlaceholder} required autoComplete="off" />
+        <Input id="school" name="school" list="schools-list" placeholder={t.auth.schoolPlaceholder} defaultValue={defaultSchool} required autoComplete="off" />
         <datalist id="schools-list">
           {schools.map((s) => (
             <option key={s} value={s} />
@@ -114,14 +124,26 @@ function SchoolFields({ role, schools }: { role: "student" | "teacher"; schools:
       </Field>
       {role === "student" ? (
         <Field label={t.auth.className} htmlFor="className">
-          <Input id="className" name="className" placeholder={t.auth.classPlaceholder} required maxLength={10} />
+          <Input id="className" name="className" placeholder={t.auth.classPlaceholder} defaultValue={defaultClass} required maxLength={10} />
         </Field>
       ) : null}
     </div>
   );
 }
 
-export function RegisterForm({ next, schools, mpass }: { next?: string; schools: string[]; mpass: boolean }) {
+export type ClassInvite = { code: string; name: string; teacher: string; school: string };
+
+export function RegisterForm({
+  next,
+  schools,
+  mpass,
+  invite,
+}: {
+  next?: string;
+  schools: string[];
+  mpass: boolean;
+  invite?: ClassInvite | null;
+}) {
   const { t } = useI18n();
   const [state, action, pending] = useActionState(registerAction, undefined);
   const [role, setRole] = useState<"student" | "teacher">("student");
@@ -129,7 +151,17 @@ export function RegisterForm({ next, schools, mpass }: { next?: string; schools:
     <>
       <form action={action} className="space-y-4">
         <input type="hidden" name="next" value={next ?? ""} />
-        <RolePicker role={role} setRole={setRole} />
+        {invite ? (
+          <>
+            <input type="hidden" name="classCode" value={invite.code} />
+            <input type="hidden" name="role" value="student" />
+            <p className="flex items-center gap-2 rounded-2xl border border-red/25 bg-red-soft px-4 py-3 text-sm font-bold text-red">
+              <GraduationCap className="size-5 shrink-0" /> {t.auth.joiningClass.replace("{name}", invite.name).replace("{teacher}", invite.teacher)}
+            </p>
+          </>
+        ) : (
+          <RolePicker role={role} setRole={setRole} />
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t.auth.firstName} htmlFor="firstName">
             <Input id="firstName" name="firstName" autoComplete="given-name" required maxLength={60} />
@@ -138,7 +170,7 @@ export function RegisterForm({ next, schools, mpass }: { next?: string; schools:
             <Input id="lastName" name="lastName" autoComplete="family-name" required maxLength={60} />
           </Field>
         </div>
-        <SchoolFields role={role} schools={schools} />
+        <SchoolFields role={invite ? "student" : role} schools={schools} defaultSchool={invite?.school} defaultClass={invite?.name} />
         <Field label={t.auth.email} htmlFor="email">
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </Field>

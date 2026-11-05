@@ -16,8 +16,10 @@ copiere, capturi de ecran și răspunsuri scrise cu inteligența artificială.
 - personalizează **securitatea** fiecărui test (presetări + reguli individuale):
   elevul poate / nu poate ieși din test, câte ieșiri se tolerează, ce se întâmplă la limită (predare automată sau doar semnalare),
   ecran complet, capturi de ecran permise sau nu, copiere permisă sau nu, filigran cu numele elevului;
-- pornește **capcana AI**: text invizibil (de culoarea fundalului) ascuns în enunț și adăugat la orice text copiat —
-  automat (un cuvânt-capcană diferit pentru fiecare elev) sau cu textul și cuvintele alese de profesor;
+- folosește instrumentele de **verificare a lucrărilor scrise cu AI** (metodele sunt descrise doar pentru profesori,
+  în aplicație, și pentru dezvoltatori, în `docs/DETECTARE-AI.md` — elevii nu trebuie să le cunoască);
+- creează **clase** (ex. „8A · Matematică”): elevii se înregistrează direct în clasă cu un cod sau QR, testele se atribuie
+  clasei, iar platforma calculează **media clasei**, media fiecărui elev și evoluția mediei de la un test la altul;
 - publică testul și primește **cod QR + cod scurt**, cu „mod proiector” pentru tablă și contor live;
 - vede **rezultatele în timp real**: cine lucrează, cine a ieșit din test, distribuția notelor, semnalele AI;
 - corectează eseurile (cu sugestie de punctaj AI, opțional) și descarcă tabelul în **CSV pentru Excel**.
@@ -25,11 +27,16 @@ copiere, capturi de ecran și răspunsuri scrise cu inteligența artificială.
 **Elevul**
 - își creează cont (nume, școală, clasă), scanează codul QR sau scrie codul;
 - susține testul pe telefon sau calculator: o întrebare pe ecran, cronometru, salvare automată (și fără internet, pe dispozitiv);
-- își vede nota imediat (dacă profesorul permite), cu animație; nota nu apare cât timp eseurile nu sunt corectate.
+- își vede nota imediat (dacă profesorul permite), cu animație; nota nu apare cât timp eseurile nu sunt corectate;
+- are un **cont personal** cu media generală, cea mai bună notă, evoluția notelor în timp (grafic), mediile pe discipline,
+  toate notele obținute și, pentru fiecare clasă, media lui alături de media clasei.
 
 **Limbi:** interfața în română și rusă; fiecare test are limba lui (RO sau RU), aleasă de profesor.
 
-**Detectarea AI** — vezi [docs/DETECTARE-AI.md](docs/DETECTARE-AI.md).
+**Design:** motive tradiționale de cusătură (steaua în opt colțuri, pomul vieții, rombul cu coarne, spicul, altița),
+culorile iei basarabene (roșu și negru pe pânză de in, cu ocru), secțiuni întunecate inspirate din covoarele basarabene.
+
+> **Important:** documentația descrie metodele de detectare a AI. Păstrați depozitul **privat**, ca elevii să nu le găsească.
 
 ## Ce NU face încă (și de ce)
 
@@ -56,13 +63,14 @@ npm run dev                               # http://localhost:3000
 
 Conturi demo (după `db:seed`), parola `Demo12345`:
 - profesor: `profesor@demo.md`
-- elevi: `elev1@demo.md`, `elev2@demo.md`, `elev3@demo.md`
-- coduri de test: `GEM8AB` (română, securitate standard), `BTR7RU` (rusă, capcană AI)
+- elevi: `elev1@demo.md` … `elev12@demo.md` (toți în clasa 8A, cu istoric de note din septembrie–octombrie)
+- coduri de test: `GEM8AB` (română, doar pentru clasa 8A), `BTR7RU` (rusă, deschis oricui are codul)
+- cod de clasă: `MAT8AB` (8A · Matematică)
 
 ## Verificări
 
 ```bash
-npm test             # teste unitare: notare, diacritice, capcana AI, similaritate, semnale
+npm test             # teste unitare: notare, diacritice, verificarea AI, similaritate, medii și progres
 npm run typecheck
 npm run build
 ```

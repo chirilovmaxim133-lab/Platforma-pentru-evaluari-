@@ -4,64 +4,79 @@
  * Identitatea vizuală: pânză de in (fundal), roșu de broderie, galben de floarea-soarelui și albastru —
  * inspirate din cusăturile tradiționale moldovenești. Toate culorile sunt variabile, cu variantă întunecată.
  */
+/*
+ * Identitatea vizuală: pânză de in (fundal), roșu de ie și negru de cusătură — culorile iei din Basarabia —
+ * cu accente de ocru (spicul, floarea-soarelui), indigo și verde de codru. Secțiunile întunecate amintesc
+ * de covoarele basarabene. Fiecare culoare are o variantă pentru tema întunecată.
+ * Roșul și indigoul sunt și culorile seriilor din grafice (verificate pentru daltonism și contrast).
+ */
 :root {
-  --paper: #fbf7ee;
-  --paper-2: #f3ecdd;
-  --card: #fffdf8;
-  --ink: #14182b;
-  --ink-2: #4b5068;
-  --ink-3: #7b7f93;
-  --line: #e6dcc8;
-  --red: #c8283c;
-  --red-soft: #f8dcdc;
-  --sun: #f2b32a;
-  --sun-soft: #fdf0c9;
-  --blue: #1f4fd8;
-  --blue-soft: #dfe7fd;
-  --green: #1f8a5b;
-  --green-soft: #d8f1e4;
-  --shadow: 20 24 43;
+  --paper: #f7f1e6;
+  --paper-2: #efe5d3;
+  --card: #fffcf5;
+  --ink: #1b1414;
+  --ink-2: #4f4545;
+  --ink-3: #85797a;
+  --line: #e4d8c4;
+  --red: #b4182d;
+  --red-soft: #f6dcd8;
+  --sun: #c8902a;
+  --sun-soft: #f6e7c4;
+  --blue: #3b5bab;
+  --blue-soft: #dfe5f4;
+  --green: #2f6e4f;
+  --green-soft: #dbeee2;
+  --night: #1d1113;
+  --night-2: #2a1a1d;
+  --night-ink: #f6ede1;
+  --shadow: 46 20 22;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0d1020;
-    --paper-2: #121631;
-    --card: #171b38;
-    --ink: #f4efe4;
-    --ink-2: #b4b7cc;
-    --ink-3: #8a8ea6;
-    --line: #2a2f55;
-    --red: #ff5f6f;
-    --red-soft: #3a1a26;
-    --sun: #ffc94d;
-    --sun-soft: #3a3116;
-    --blue: #86a6ff;
-    --blue-soft: #1b2552;
-    --green: #4fd39a;
-    --green-soft: #12352a;
+    --paper: #120c0d;
+    --paper-2: #1a1113;
+    --card: #21161a;
+    --ink: #f4ebdf;
+    --ink-2: #cbbfb3;
+    --ink-3: #9b8e85;
+    --line: #3b2a2e;
+    --red: #ee4a5e;
+    --red-soft: #3d1b21;
+    --sun: #e6b65a;
+    --sun-soft: #3b2e17;
+    --blue: #6f8ee8;
+    --blue-soft: #1f2742;
+    --green: #5cc48f;
+    --green-soft: #14301f;
+    --night: #0b0607;
+    --night-2: #1a1013;
+    --night-ink: #f6ede1;
     --shadow: 0 0 0;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --paper: #0d1020;
-  --paper-2: #121631;
-  --card: #171b38;
-  --ink: #f4efe4;
-  --ink-2: #b4b7cc;
-  --ink-3: #8a8ea6;
-  --line: #2a2f55;
-  --red: #ff5f6f;
-  --red-soft: #3a1a26;
-  --sun: #ffc94d;
-  --sun-soft: #3a3116;
-  --blue: #86a6ff;
-  --blue-soft: #1b2552;
-  --green: #4fd39a;
-  --green-soft: #12352a;
+  --paper: #120c0d;
+  --paper-2: #1a1113;
+  --card: #21161a;
+  --ink: #f4ebdf;
+  --ink-2: #cbbfb3;
+  --ink-3: #9b8e85;
+  --line: #3b2a2e;
+  --red: #ee4a5e;
+  --red-soft: #3d1b21;
+  --sun: #e6b65a;
+  --sun-soft: #3b2e17;
+  --blue: #6f8ee8;
+  --blue-soft: #1f2742;
+  --green: #5cc48f;
+  --green-soft: #14301f;
+  --night: #0b0607;
+  --night-2: #1a1013;
+  --night-ink: #f6ede1;
   --shadow: 0 0 0;
   color-scheme: dark;
 }
@@ -82,6 +97,9 @@
   --color-blue-soft: var(--blue-soft);
   --color-green: var(--green);
   --color-green-soft: var(--green-soft);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-night-ink: var(--night-ink);
   --font-display: "Unbounded Variable", "Manrope Variable", system-ui, sans-serif;
   --font-sans: "Manrope Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -102,7 +120,7 @@
 
   ::selection {
     background: var(--sun);
-    color: #14182b;
+    color: #1b1414;
   }
 
   :focus-visible {
@@ -132,14 +150,23 @@
     0 24px 48px -20px rgb(var(--shadow) / 0.35);
 }
 
-/* Banda de broderie folosită ca separator. */
+/* Linie de cusătură „înainte” (tighel), folosită ca separator subțire. */
 .stitch-line {
-  height: 10px;
-  background-image:
-    linear-gradient(45deg, transparent 35%, var(--red) 35% 65%, transparent 65%),
-    linear-gradient(-45deg, transparent 35%, var(--red) 35% 65%, transparent 65%);
-  background-size: 14px 10px;
-  opacity: 0.85;
+  height: 3px;
+  background-image: linear-gradient(90deg, var(--red) 0 8px, transparent 8px 14px);
+  background-size: 14px 3px;
+  border-radius: 2px;
+}
+
+/* Cusătura care „se coase” singură: liniuțele avansează încet. */
+@keyframes stitch-run {
+  to {
+    background-position: 28px 0;
+  }
+}
+
+.stitch-run {
+  animation: stitch-run 2.4s linear infinite;
 }
 
 @keyframes marquee {
@@ -203,10 +230,10 @@
 }
 
 /*
- * Capcana AI: text cu aceeași culoare ca fundalul cardului, minuscul și invizibil chiar și când e selectat.
+ * Text auxiliar al enunțului: aceeași culoare ca fundalul cardului, minuscul, invizibil chiar și selectat.
  * Rămâne în textul copiat. Cititoarele de ecran îl ignoră (aria-hidden).
  */
-.ai-trap {
+.q-aux {
   color: var(--card);
   font-size: 1px;
   line-height: 0;
@@ -214,7 +241,7 @@
   display: inline;
 }
 
-.ai-trap::selection {
+.q-aux::selection {
   color: transparent;
   background: transparent;
 }

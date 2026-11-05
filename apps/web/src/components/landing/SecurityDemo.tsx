@@ -17,8 +17,8 @@ export function SecurityDemo() {
     !rules.leave
       ? { icon: ShieldAlert, text: t.landing.phoneLocked, tone: "bg-red text-white" }
       : { icon: DoorOpen, text: t.landing.phoneFree, tone: "bg-green text-white" },
-    !rules.screenshots ? { icon: CameraOff, text: t.landing.phoneNoShot, tone: "bg-ink text-paper" } : null,
-    !rules.copy ? { icon: CopyX, text: t.landing.phoneNoCopy, tone: "bg-sun text-[#14182b]" } : null,
+    !rules.screenshots ? { icon: CameraOff, text: t.landing.phoneNoShot, tone: "bg-night text-night-ink" } : null,
+    !rules.copy ? { icon: CopyX, text: t.landing.phoneNoCopy, tone: "bg-sun text-[#1b1414]" } : null,
   ].filter((s): s is NonNullable<typeof s> => !!s);
 
   return (
@@ -43,7 +43,7 @@ export function SecurityDemo() {
       </div>
 
       <div className="relative mx-auto w-[260px]">
-        <div className="relative overflow-hidden rounded-[2.4rem] border-[10px] border-ink bg-paper shadow-lift">
+        <div className="relative overflow-hidden rounded-[2.4rem] border-[10px] border-night bg-paper shadow-lift">
           <div className={cn("space-y-3 p-5 pt-10 transition-all", !rules.copy && "select-none")}>
             <div className="h-3 w-24 rounded-full bg-ink/15" />
             <div className="h-24 rounded-2xl border border-line bg-card p-3">
@@ -52,7 +52,7 @@ export function SecurityDemo() {
               <div className="mt-2 h-2.5 w-3/5 rounded-full bg-ink/10" />
             </div>
             {[0, 1, 2].map((i) => (
-              <div key={i} className={cn("h-10 rounded-xl border-2", i === 1 ? "border-blue bg-blue-soft" : "border-line")} />
+              <div key={i} className={cn("h-10 rounded-xl border-2", i === 1 ? "border-red bg-red-soft" : "border-line")} />
             ))}
           </div>
           <AnimatePresence>

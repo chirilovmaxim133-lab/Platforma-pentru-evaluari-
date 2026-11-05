@@ -4,17 +4,17 @@ import { after } from "next/server";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { ArrowLeft, Download, QrCode, Sparkles } from "lucide-react";
 import { db } from "@/lib/db";
-import { attemptEvents, attempts, users } from "@/lib/db/schema";
+import { attemptEvents, attempts, classes, classMembers, users } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/session";
 import { fmt, getDict } from "@/lib/i18n";
 import { runLlmAnalysis } from "@/lib/ai/analyze";
 import { peerSimilarity } from "@/lib/ai/peer-similarity";
 import { finalizeOverdue, getOwnedTest, loadQuestions } from "@/lib/tests/service";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { ColumnChart } from "@/components/charts";
 import { Badge, btn, Card, cn } from "@/components/ui";
 
 const ONLINE_MS = 45_000;
-const GRADE_COLORS = ["#c8283c", "#d6473b", "#e0663a", "#e98a38", "#f2b32a", "#c9b52f", "#8fb23d", "#55a64b", "#2e9555", "#1f8a5b"];
 
 export default async function ResultsPage({ params }: PageProps<"/profesor/teste/[id]/rezultate">) {
   const { id } = await params;
@@ -55,6 +55,19 @@ export default async function ResultsPage({ params }: PageProps<"/profesor/teste
   const exitsFor = (a: (typeof rows)[number]["attempt"]) =>
     test.settings.security.allowLeave ? (leaves.get(a.id) ?? 0) : a.violationCount;
 
+  // Testul unei clase: cine din clasă n-a început încă.
+  const [cls] = test.classId ? await db.select({ id: classes.id, name: classes.name }).from(classes).where(eq(classes.id, test.classId)).limit(1) : [];
+  const members = cls
+    ? await db
+        .select({ id: users.id, firstName: users.firstName, lastName: users.lastName })
+        .from(classMembers)
+        .innerJoin(users, eq(users.id, classMembers.studentId))
+        .where(eq(classMembers.classId, cls.id))
+        .orderBy(asc(users.lastName))
+    : [];
+  const started = new Set(rows.map((r) => r.attempt.studentId));
+  const notStarted = members.filter((m) => !started.has(m.id));
+
   const submitted = rows.filter((r) => r.attempt.status === "submitted");
   const similar = peerSimilarity(qs, submitted.map((r) => r.attempt));
   const isGrade = test.settings.grading.mode === "grade10";
@@ -63,7 +76,6 @@ export default async function ResultsPage({ params }: PageProps<"/profesor/teste
   const avgPercent = avg(submitted.map((r) => r.attempt.percent).filter((p): p is number => p !== null));
   const pending = submitted.filter((r) => !r.attempt.gradingComplete).length;
   const dist = Array.from({ length: 10 }, (_, i) => submitted.filter((r) => r.attempt.grade === i + 1).length);
-  const distMax = Math.max(1, ...dist);
   const now = Date.now();
 
   return (
@@ -84,7 +96,14 @@ export default async function ResultsPage({ params }: PageProps<"/profesor/teste
       </div>
 
       <div className="mt-4 flex items-baseline justify-between gap-3">
-        <h1 className="font-display text-3xl font-bold tracking-tight">{t.results.title}</h1>
+        <h1 className="flex flex-wrap items-center gap-3 font-display text-3xl font-bold tracking-tight">
+          {t.results.title}
+          {cls ? (
+            <Link href={`/profesor/clase/${cls.id}`}>
+              <Badge tone="red" className="text-sm">{cls.name}</Badge>
+            </Link>
+          ) : null}
+        </h1>
         {test.status === "published" ? <span className="text-xs font-semibold text-ink-3">{t.results.refreshing}</span> : null}
       </div>
 
@@ -105,14 +124,16 @@ export default async function ResultsPage({ params }: PageProps<"/profesor/teste
       {isGrade && submitted.length ? (
         <Card className="mt-4 p-5">
           <p className="text-sm font-bold text-ink-2">{t.results.distribution}</p>
-          <div className="mt-4 flex h-32 items-end gap-2">
-            {dist.map((n, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-xs font-bold tabular-nums text-ink-3">{n || ""}</span>
-                <div className="w-full rounded-t-lg transition-all" style={{ height: `${(n / distMax) * 96}px`, minHeight: n ? 6 : 2, background: n ? GRADE_COLORS[i] : "var(--line)" }} />
-                <span className="text-xs font-bold">{i + 1}</span>
-              </div>
-            ))}
+          <div className="mt-3">
+            <ColumnChart
+              ariaLabel={t.results.distribution}
+              columns={dist.map((n, i) => ({
+                key: String(i + 1),
+                label: String(i + 1),
+                value: n,
+                tooltip: `${t.settings.gradeLabel.replace("{n}", String(i + 1))}`,
+              }))}
+            />
           </div>
         </Card>
       ) : null}
@@ -193,6 +214,11 @@ export default async function ResultsPage({ params }: PageProps<"/profesor/teste
           </div>
         </Card>
       )}
+      {notStarted.length ? (
+        <p className="mt-3 rounded-2xl bg-sun-soft px-4 py-3 text-sm">
+          {fmt(t.classes.notStarted, { names: notStarted.map((m) => `${m.lastName} ${m.firstName}`).join(", ") })}
+        </p>
+      ) : null}
       <p className="mt-3 text-xs text-ink-3">{fmt(t.common.questionsCount, { n: qs.length })}</p>
     </div>
   );

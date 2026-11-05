@@ -7,7 +7,7 @@ export function formatAnswer(data: QuestionData, v: AnswerValue | undefined, t: 
     const ids = Array.isArray(v) ? v : [String(v)];
     return data.options.filter((o) => ids.includes(o.id)).map((o) => o.text).join("; ") || "—";
   }
-  if (data.type === "truefalse") return v ? t.editor.trueLabel : t.editor.falseLabel;
+  if (data.type === "truefalse") return v ? t.common.trueLabel : t.common.falseLabel;
   return String(v);
 }
 
@@ -17,7 +17,7 @@ export function correctAnswerText(data: QuestionData, t: Dict): string | null {
     case "multiple":
       return data.options.filter((o) => data.correctIds.includes(o.id)).map((o) => o.text).join("; ");
     case "truefalse":
-      return data.correct ? t.editor.trueLabel : t.editor.falseLabel;
+      return data.correct ? t.common.trueLabel : t.common.falseLabel;
     case "short":
       return data.accepted.filter(Boolean).join(" / ");
     case "number":

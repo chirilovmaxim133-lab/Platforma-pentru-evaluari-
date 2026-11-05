@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   bigserial,
   boolean,
   doublePrecision,
@@ -6,6 +7,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -74,6 +76,38 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
+/** Clasa creată de profesor (ex. „8A · Matematică”). Elevii intră cu codul clasei. */
+export const classes = pgTable(
+  "classes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    ownerId: uuid("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    schoolId: uuid("school_id").references(() => schools.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    subject: text("subject").notNull().default(""),
+    gradeLevel: integer("grade_level"),
+    joinCode: text("join_code").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("classes_code_idx").on(t.joinCode), index("classes_owner_idx").on(t.ownerId)],
+);
+
+export const classMembers = pgTable(
+  "class_members",
+  {
+    classId: uuid("class_id")
+      .notNull()
+      .references(() => classes.id, { onDelete: "cascade" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.classId, t.studentId] }), index("class_members_student_idx").on(t.studentId)],
+);
+
 export const tests = pgTable(
   "tests",
   {
@@ -85,6 +119,8 @@ export const tests = pgTable(
     description: text("description").notNull().default(""),
     subject: text("subject").notNull().default(""),
     language: text("language").$type<Locale>().notNull().default("ro"),
+    /** Testul aparține unei clase: îl pot susține doar elevii ei, iar notele intră în media clasei. */
+    classId: uuid("class_id").references((): AnyPgColumn => classes.id, { onDelete: "set null" }),
     status: text("status").$type<"draft" | "published" | "closed">().notNull().default("draft"),
     accessCode: text("access_code"),
     settings: jsonb("settings").$type<TestSettings>().notNull(),
@@ -93,7 +129,11 @@ export const tests = pgTable(
     publishedAt: timestamp("published_at", { withTimezone: true }),
     closedAt: timestamp("closed_at", { withTimezone: true }),
   },
-  (t) => [uniqueIndex("tests_code_idx").on(t.accessCode), index("tests_owner_idx").on(t.ownerId)],
+  (t) => [
+    uniqueIndex("tests_code_idx").on(t.accessCode),
+    index("tests_owner_idx").on(t.ownerId),
+    index("tests_class_idx").on(t.classId),
+  ],
 );
 
 export const questions = pgTable(
@@ -187,3 +227,4 @@ export type Question = typeof questions.$inferSelect;
 export type Attempt = typeof attempts.$inferSelect;
 export type AttemptEvent = typeof attemptEvents.$inferSelect;
 export type School = typeof schools.$inferSelect;
+export type Class = typeof classes.$inferSelect;

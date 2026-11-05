@@ -3,7 +3,8 @@ import "@fontsource-variable/unbounded";
 import "@fontsource-variable/manrope";
 import "katex/dist/katex.min.css";
 import "./globals.css";
-import { getDict } from "@/lib/i18n";
+import { clientDict, getDict } from "@/lib/i18n";
+import { getCurrentUser } from "@/lib/auth/session";
 import { I18nProvider } from "@/lib/i18n/client";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,11 +22,11 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const { locale, t } = await getDict();
+  const [{ locale, t }, user] = await Promise.all([getDict(), getCurrentUser()]);
   return (
     <html lang={locale}>
       <body className="linen min-h-dvh">
-        <I18nProvider locale={locale} t={t}>
+        <I18nProvider locale={locale} t={clientDict(t, user?.role)}>
           {children}
         </I18nProvider>
       </body>

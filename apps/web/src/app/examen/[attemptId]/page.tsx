@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { attempts, tests } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/session";
-import { DICTS } from "@/lib/i18n";
+import { clientDict, DICTS } from "@/lib/i18n";
 import { I18nProvider } from "@/lib/i18n/client";
 import { hiddenTrapText } from "@/lib/ai/trap";
 import { DEADLINE_GRACE_MS, finalizeAttempt, loadQuestions } from "@/lib/tests/service";
@@ -38,7 +38,7 @@ export default async function ExamPage({ params }: PageProps<"/examen/[attemptId
   const locale = test.language;
 
   return (
-    <I18nProvider locale={locale} t={DICTS[locale]}>
+    <I18nProvider locale={locale} t={clientDict(DICTS[locale], user.role)}>
       <div lang={locale}>
         <ExamRunner
           attemptId={attempt.id}
@@ -53,7 +53,7 @@ export default async function ExamPage({ params }: PageProps<"/examen/[attemptId
           violationCount={attempt.violationCount}
           security={test.settings.security}
           allowBack={test.settings.allowBackNavigation}
-          trapText={hiddenTrapText(test.settings.aiTrap, locale, attempt.canary)}
+          aux={hiddenTrapText(test.settings.aiTrap, locale, attempt.canary)}
         />
       </div>
     </I18nProvider>

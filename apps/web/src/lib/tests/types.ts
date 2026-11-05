@@ -111,6 +111,7 @@ export const editorPayloadSchema = z.object({
   description: z.string().max(5000),
   subject: z.string().max(100),
   language: z.enum(LOCALES),
+  classId: z.uuid().nullable(),
   questions: z.array(editorQuestionSchema).max(200),
   settings: testSettingsSchema,
 });
