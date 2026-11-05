@@ -1,0 +1,20 @@
+{
+  "name": "platforma-pentru-evaluari",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "start": "npm run start -w apps/web",
+    "typecheck": "npm run typecheck -w apps/web",
+    "test": "npm run test -w apps/web",
+    "db:generate": "npm run db:generate -w apps/web",
+    "db:migrate": "npm run db:migrate -w apps/web",
+    "db:seed": "npm run db:seed -w apps/web"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
