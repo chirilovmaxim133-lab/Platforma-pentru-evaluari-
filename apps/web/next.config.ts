@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
-const isProd = process.env.NODE_ENV === "production";
+// Antetele stricte (HSTS, interzicerea încadrării) doar pentru platforma publicată pe HTTPS.
+const httpsDeployment = (process.env.APP_URL ?? "").startsWith("https://");
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -12,7 +13,7 @@ const nextConfig: NextConfig = {
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
     ];
-    if (isProd) {
+    if (httpsDeployment) {
       security.push({ key: "X-Frame-Options", value: "DENY" });
       security.push({ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" });
     }

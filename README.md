@@ -67,6 +67,31 @@ Conturi demo (după `db:seed`), parola `Demo12345`:
 - coduri de test: `GEM8AB` (română, doar pentru clasa 8A), `BTR7RU` (rusă, deschis oricui are codul)
 - cod de clasă: `MAT8AB` (8A · Matematică)
 
+## Cum testez platforma
+
+### Pe calculator
+Urmează pașii de la „Pornire locală”, apoi deschide http://localhost:3000. Pentru profesor și elev deodată, folosește
+două browsere diferite sau o fereastră privată (fiecare are contul lui).
+
+### Pe telefon (aceeași rețea Wi-Fi ca și calculatorul)
+1. Află adresa calculatorului în rețea (Windows: `ipconfig`, macOS: `ipconfig getifaddr en0`), de ex. `192.168.1.20`.
+2. În `apps/web/.env` pune `APP_URL=http://192.168.1.20:3000` — codurile QR vor duce la această adresă.
+3. Pornește: `npm run build` și apoi `npm run start:lan`.
+4. Pe telefon, scanează codul QR afișat de profesor (sau deschide `http://192.168.1.20:3000`).
+
+### Scenariu de test (10–15 minute)
+1. **Pagina principală** — comută RO / RU.
+2. **Profesor** (`profesor@demo.md`): *Clase → 8A* — media clasei, mediile elevilor, graficul; *Teste → Cod QR → Arată pe tablă*.
+3. **Test nou**: câteva întrebări (o formulă, o imagine, un răspuns scurt), *Securitate → Evaluare sumativă*, *Publică*.
+4. **Elev** (`elev1@demo.md`, în alt browser): scrie codul, începe testul, ieși din tab (Alt+Tab) — apare avertismentul;
+   predă testul și vezi nota.
+5. **Profesor → Rezultate**: ieșirile din test, lucrarea elevului, corectarea manuală, exportul CSV.
+6. **Verificarea AI** cu un chatbot real: `elev2@demo.md` → codul `BTR7RU` → copiază întrebarea în chatbot și lipește
+   răspunsul în test → predă; profesorul vede semnalul în lucrarea elevului.
+7. **Contul elevului** (`elev2@demo.md`): media, graficul notelor, clasa 8A cu media clasei.
+8. **Înregistrare în clasă**: profesorul creează o clasă; deschide linkul clasei într-o fereastră privată →
+   *Creează cont și intră în clasă*.
+
 ## Verificări
 
 ```bash

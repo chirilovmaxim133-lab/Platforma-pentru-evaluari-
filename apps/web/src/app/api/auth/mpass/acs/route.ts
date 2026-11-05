@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
+import { isHttps } from "@/config/site";
 import { mpassClient, mpassEnabled, mpassIdentity } from "@/lib/auth/mpass";
 import { hmac, signPayload } from "@/lib/auth/crypto";
 import { createSession, homeFor } from "@/lib/auth/session";
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     res.cookies.set(
       MPASS_PENDING_COOKIE,
       signPayload({ subject, firstName: identity.firstName, lastName: identity.lastName }, 15 * 60),
-      { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 15 * 60 },
+      { httpOnly: true, secure: isHttps(), sameSite: "lax", path: "/", maxAge: 15 * 60 },
     );
     return res;
   } catch (err) {

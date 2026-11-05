@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { sessions, users, type Role, type User } from "@/lib/db/schema";
+import { isHttps } from "@/config/site";
 import { randomToken, sha256 } from "./crypto";
 
 const COOKIE = "sid";
@@ -15,7 +16,7 @@ export async function createSession(userId: string): Promise<void> {
   await db.insert(sessions).values({ id: sha256(token), userId, expiresAt });
   (await cookies()).set(COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isHttps(),
     sameSite: "lax",
     path: "/",
     expires: expiresAt,
